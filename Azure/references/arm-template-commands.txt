@@ -1,0 +1,10 @@
+ARM template deployment commands
+===============================
+
+cd clouddrive
+
+cd templates
+
+dir
+
+az deployment group create --resource-group optimized-vm-rg --template-file template.json --parameters parameters.json

@@ -1,0 +1,6 @@
+dotnet add package Microsoft.AspNetCore.Authentication.OpenIdConnect -v 6.0.25
+
+dotnet add package Microsoft.Identity.Web
+
+dotnet add package Microsoft.Identity.Web.UI
+

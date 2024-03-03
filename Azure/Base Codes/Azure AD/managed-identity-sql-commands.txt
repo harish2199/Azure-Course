@@ -1,0 +1,7 @@
+CREATE USER [<appservice-name>] FROM EXTERNAL PROVIDER
+
+ALTER ROLE db_datareader ADD MEMBER [<appservice-name>]
+
+ALTER ROLE db_datawriter ADD MEMBER [<appservice-name>]
+
+

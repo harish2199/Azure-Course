@@ -1,0 +1,8 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "CosmosDBConnection": "AccountEndpoint=https://harish-readit-cosmos.documents.azure.com:443/;AccountKey=Bf4dTUj7bKs9b2MJ8fhxRYGQsqmuqI92OLYKQWlyBnvnyWsdOsON2GhcpfV23WWqSnrUOIuXsoycACDba6nVvQ==;",
+    "StorageConnectionString": "<Storage connection string>"
+  }
+}

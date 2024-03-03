@@ -1,0 +1,9 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "AzureWebJobStorage": "DefaultEndpointsProtocol=https;AccountName=harishorderfunstorage;AccountKey=yxL+faz8U5Iko4xbRgiVSDJybC22q0jGLJfWOXhHnHIZgWZsoMpNjlxyELFg2AGCdAs48liB1QaY+AStHkkd6Q==;EndpointSuffix=core.windows.net",
+    "CosmosDBConnection": "AccountEndpoint=https://harish-readit-cosmos.documents.azure.com:443/;AccountKey=Bf4dTUj7bKs9b2MJ8fhxRYGQsqmuqI92OLYKQWlyBnvnyWsdOsON2GhcpfV23WWqSnrUOIuXsoycACDba6nVvQ==;",
+    "StorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=harishreaditorders;AccountKey=1oRRCb1Q+sm0U00b5bgiDYpsB7+7KIBo6qEVU4gPlQzpVDLBXdN61Xk8y1GXy+7obJiCgmG5lwKS+AStBBCzVg==;EndpointSuffix=core.windows.net"
+  }
+}
