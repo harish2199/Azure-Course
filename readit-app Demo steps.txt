@@ -1,0 +1,148 @@
+Install the pre-requisites:
+1. Visual studio code - https://code.visualstudio.com/download
+2. dotnet SDK - https://dotnet.microsoft.com/en-us/download
+		https://download.visualstudio.microsoft.com/download/pr/37d12f81-b83d-43d8-91be-7c547a2abfe2/4f6bed6c672458dafd805b007509d9ad/dotnet-sdk-6.0.419-win-x64.exe
+3. Azure CLI - https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=azure-cli
+4. Func CLI - https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=windows%2Cisolated-process%2Cnode-v4%2Cpython-v2%2Chttp-trigger%2Ccontainer-apps&pivots=programming-language-csharp
+5. Visual Studio - https://visualstudio.microsoft.com/downloads/
+
+Visual studio code extensions:
+1. C# Dev Kit - to get the sln file 
+2. C#
+3. Azure Tools
+4. SQL Server (mssql)
+
+
+--> Building Read it App:
+
+step 1: create a catalog VM in the portal.
+	open catalog VM
+		Go to Server Manager Dashboard
+			click on add roles and features add install web server(IIS) feature 
+		Install dotnet 6.0.27 Hosting bundle
+		Publish the catalog project code from the local to the catalog folder which is created in the c drive in File Explorer(VM)
+		Now add the site to IIS with 8080 port(Name: catalog app)
+		Then localhost:8080 to test
+	- Add NSG rule to allow the traffic from our local IP to the catalog VM
+	Note: Turn Off the Windows Defender Firewall in the catalog VM
+		Install the Hosting Bundle after publishing the code
+		
+step 2: create a Weather VM using the commands 
+	Add peering from the catalog VNet to the Weather VNet
+	Then check whether we are getting the weather from the weather vm to the catalog vm through a private IP
+
+step 3: create an App Service for the inventory service 
+	Deploy the code to the app service from the local
+
+step 4: create an App Service for the cart service
+	Deploy the code to the app service from the local
+
+step 5: create a Function App for the orders-service
+	Deploy the code to the function app 
+
+step 6: create an Application gateway 
+	Add Inventory and catalog in the backend pools
+		catalog-pool --> IP addresses - catalog private IP
+		inventory-pool --> App Service -- Inventory-service name
+		For catalog-rule, Http
+		For App service, in backend-settings -- Https
+	Note: Add peering from the catalog app to the application gateway
+	      create a service endpoint to the application gateway's subnet and then add a rule to allow gw-access in the app service
+
+step 7: create Azure SQL (SQL databases)
+		Add server firewall for our local IP address
+		connect the Azure SQL to the vs code using the connection string
+		change the catalog app code -- add connection string and change useInMemory = false in startup.cs
+		Then add migration using commands 
+			1. Installs the migrations tool -- dotnet tool install --global dotnet-ef
+			2. Create the migrations files -- dotnet ef migrations add -c BookContext InitialCreate
+			3. updates the database -- dotnet ef database update
+		Now run the code locally to test and then publish the code to catalog vm
+	Note: Add the private endpoint from the Azure SQL server firewall -- private tab -- Add private endpoint 
+
+step 8: connect the inventory service to the Azure SQL
+		change the Inventory-service code -- uncomment lines in index.cs.html file
+		place the connection string of the Azure SQL in the inventory app service -- configuration section 
+		Add the firewall rule to allow the inventory service to access the Azure SQL
+		Deploy the code
+	Note: Add VNet Integration --> App service -- Networking -- VNet Integration -- Add -- select the VNet of the database and select the new subnet of that vnet that is not used by the resource.
+
+step 9: create CosmosDB and then create a database inside it
+
+step 10: connect the orders-service function to the cosmos DB
+		uncomment the lines in proccessordercosmos.cs 
+		and add the connection connection string of the cosmos DB to this code
+		Deploy the code to the function app
+
+step 11: Create the storage account for the read-it app
+		create a "new-orders" container inside it
+
+step 12: Create Redis and connect to the catalog app
+		Add the connection string of the Redis to the catalog app code  -- Access Keys -- primary key + primary connection connection string(till password)
+		uncomment the lines in index.cs.html files 
+		check locally and publish the code to catalog vm
+
+step 13: connect the shopping cart service to Redis
+		Add the connections of Redis, Azure SQL, and order function URL to the cart service code
+		uncomment the lines in the index.cs.html file
+		check locally and then deploy to the App Service
+
+step 14: create and connect the Event Grid to the orders function
+		replace the proccessorderscosmos.cs file
+		Install package -- dotnet add package Microsoft.Azure.WebJobs.Extensions.EventGrid
+		Add read-it storage account connection string in the appsettings.json 
+		also, create the storage account for the function app and put the connection string of that storage account connection string in the orders code appsettings.json  
+			i.e; AzureWebJobsStorage: "CONNECTION STRING"
+		Deploy the code to the Function app
+		
+		Define Event Grid to trigger this function -- Add Event Subscription
+
+		connect the shopping cart to the storage account 
+		replace the index.cs.html file in the cart project
+		replace the function-app-URL with the read it storage account connection string in the appsettings.json of the order project
+		deploy the code
+
+step 15: Configuring App Service for Authentication using Azure AD
+		Allow direct access to  the inventory app service
+		Now configure the inventory app service for authentication --> Authentication -- Add Identity provider 
+		we can see the apps which registered for the authentication in the Microsoft Entra --> App Registrations -- All Applications
+		--> Change the code for using Azure AD
+			replace all the files and folders that need to 
+			Install these packages :
+				1. dotnet add package Microsoft.AspNetCore.Authentication.OpenIdConnect -v 6.0.25
+				2. dotnet add package Microsoft.Identity.Web
+				3. dotnet add package Microsoft.Identity.Web.UI
+
+			and add the Tenant ID from the Microsft Entra and Client ID from the App service --> Authentication
+		Deploy the code to the App Service 
+
+
+step 16: Using Key Vault in the catalog App
+		create a key vault
+		configure the catalog code to work with key vault
+		replace the program.cs file in the catalog app code 
+		add package -- dotnet add package Microsoft.Extensions.Configuration.AzureKeyVault		
+
+		Goto IAM in the key vault and add role assignment -- Key Vault Secret Officer 
+		Now add the connection string to the secrets in the key vault --> Name of the secret: ConnectionStrings--BooksDB
+		replace the connection string of the BooksDB in the catalog code with the KeyVault URL
+			i	i.e; "KeyVault":{
+						"BaseUrl": "key vault URL"
+					}
+		Publish the code to the catalog VM
+		note: Allow the access for the catalog VM to the key vault --> access configurations (or) Assign the role "Key Vault Secrets User" to the catalog VM --> IAM 
+			enable identity for the catalog VM before assigning the role
+
+
+step 17: Traffic Manager for DR
+		create a profile for the traffic manager 
+		Goto endpoints and add endpoints for the Inventory App service and one for the secondary(Inventory-dr) for the Inventory App Service
+		Note: Disable Authentication for the Inventory App Service -- Authentication Tab
+
+step 18: Front Door for DR
+		create an Azure Front Door classic -- In other offerings
+		Add frontend and backend pools(2- Inventory and Inventory-dr) and routing rule
+		Add access restriction rule to allow traffic only through the front door 
+			i.e; Type: service tag
+			     service tag: AzureFrontDoor.Backend
+
